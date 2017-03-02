@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -17,8 +18,13 @@ public class PuzzlesChallenges
      */
     public static List<String> selectByLengthAndPosition( List<String> input )
     {
-        //TODO: Add your code here
-        List<String> result = null;
+        
+        List<String> result = new ArrayList<String>();
+        for (int i = 0; i < input.size(); ++i) {
+        	if (input.get(i).length() > i) {
+        		result.add(input.get(i));
+        	}
+        }
 
         return result;
     }
@@ -31,9 +37,20 @@ public class PuzzlesChallenges
     public static List<String> selectLongestWords( List<String> input )
     {
 
-        //TODO: Add your code here
-        List<String> result = null;
-
+        List<String> result = new ArrayList<String>();
+        int currentLongestWordLength = 0;
+        for (int i = 0; i < input.size(); ++i) {
+        	// if longer than the previous longest word
+        	if (input.get(i).length() > currentLongestWordLength) {
+        		result = new ArrayList<String>(); // empty list
+        		String newLongestWord = input.get(i);
+        		result.add(newLongestWord);
+        		currentLongestWordLength = newLongestWord.length();
+        	} else if (input.get(i).length() == currentLongestWordLength) {
+        		// otherwise if the word is as long as the previous longest word, add it to the list
+        		result.add(input.get(i));
+        	}
+        }
 
         return result;
     }
@@ -49,10 +66,35 @@ public class PuzzlesChallenges
     public static List<String> sortedLowerCaseDistinctByLengthThenAlphabetically( BufferedReader reader )
         throws IOException
     {
-
-        //TODO: Add your code here
-        List<String> result = null;
-
+    	
+        List<String> result = new ArrayList<String>();
+        String line = "";
+        
+        // go through the text
+        while ((line = reader.readLine()) != null) {
+        	// collect a line of text and replace all unallowed characters with a space
+        	line = line.replaceAll(WORD_PATTERN.pattern(), " ");
+        	// split the line at all the spaces to get a list of words
+        	List<String> lineWords = new ArrayList<String>(Arrays.asList(line.split(" ")));
+        	
+        	// go through the words in the line and check for duplicates
+        	for (String word : lineWords) {
+        		word = word.toLowerCase();
+        		if (!word.isEmpty() && !result.contains(word)) {
+        			result.add(word);
+        		}
+        	}
+        }
+        
+        Collections.sort(result, (word1, word2) -> {
+        	int lengthDifference = word1.length() - word2.length();
+        	if (lengthDifference == 0) {
+        		return word1.compareTo(word2);
+        	} else {
+        		return lengthDifference;
+        	}
+        });
+        
         return result;
     }
 
@@ -62,8 +104,17 @@ public class PuzzlesChallenges
       */
      public static String getLastWord( BufferedReader reader )
      {
-         //TODO: Add your code here
          String result = null;
+         
+         try {
+        	 String line = "";
+        	 while ((line = reader.readLine()) != null) {
+        		 line = line.replaceAll("[,.:]+", "");
+        		 result = line.substring(line.lastIndexOf(" ") + 1);
+			 }
+		 } catch (IOException e) {
+			 e.printStackTrace();
+		 }
 
          return result;
      }
@@ -85,9 +136,29 @@ public class PuzzlesChallenges
     public static Map<String, Map<Integer, List<String>>> nestedMaps( BufferedReader reader )
     {
 
-        //TODO: Ad your code here
-        Map<String, Map<Integer, List<String>>> result = null;
+        Map<String, Map<Integer, List<String>>> result = new TreeMap<String, Map<Integer, List<String>>>();
 
+        try {
+        	String line = "";
+        	while ((line = reader.readLine()) != null) {
+        		line = line.replaceAll(WORD_PATTERN.pattern(), " ");
+            	List<String> lineWords = new ArrayList<String>(Arrays.asList(line.split(" ")));
+        		for (String word : lineWords) {
+        			String initial = "" + word.charAt(0);
+        			if (result.containsKey(initial)) {
+        				if (!result.get(initial).containsKey(word.length())) {
+        					result.get(initial).put(word.length(), new ArrayList<String>());
+        				}
+        			} else {
+        				result.put(initial, new TreeMap<Integer, List<String>>());
+        				result.get(initial).put(word.length(), new ArrayList<String>());
+        			}
+        			result.get(initial).get(word.length()).add(word);
+        		}
+        	}
+        } catch (IOException e) {
+        	e.printStackTrace();
+        }
 
         return result;
     }
@@ -100,8 +171,24 @@ public class PuzzlesChallenges
      */
     public static Map<Boolean, Integer> separateOddEvenSums( IntStream input )
     {
-        //TODO: Add your code here
-        Map<Boolean, Integer> result = null;
+
+        Map<Boolean, Integer> result = new HashMap<Boolean, Integer>();
+        
+        result.put(false, 0);
+        result.put(true, 0);
+        
+        input.forEach(new IntConsumer() {
+			
+			@Override
+			public void accept(int value) {
+				double remainder = value % 2;
+				if (remainder != 0) {
+					result.put(true, result.get(true) + value);
+				} else {
+					result.put(false, result.get(false) + value);
+				}
+			}
+		});
 
         return result;
     }
@@ -132,9 +219,15 @@ public class PuzzlesChallenges
      */
     public static List<String> denormilizeMap( Map<Integer, List<String>> input )
     {
-        //TODO:: Add your code here
+        
         List<String> result = new ArrayList<>();
+        
+        for (Map.Entry<Integer, List<String>> entry : input.entrySet()) {
+        	for (String animalName : entry.getValue()) {
+        		result.add(animalName + ":" + entry.getKey());
+        	}
+        }
 
-                return result;
+        return result;
     }
 }
